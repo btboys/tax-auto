@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      - name: Electron-builder Install-app-deps
+        run: electron-builder install-app-deps
+
       - name: Build application
         run: yarn build
 
@@ -41,4 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-package
-          path: dist/
+          path: |
+            ${{ runner.os == 'macOS' && 'dist/*.dmg' || '' }}
+            ${{ runner.os == 'Windows' && 'dist/*.exe' || '' }}
+            if-no-files-found: error
