@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { chromium } from 'playwright'
+import puppeteer from 'puppeteer'
 
 function createWindow(): void {
   // Create the browser window.
@@ -52,11 +52,11 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', async () => {
-    const browser = await chromium.launch({ headless: false })
-    const page = await browser.newPage()
-    page.on('close', () => {
-      browser.close()
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: ['--no-sandbox']
     })
+    const page = await browser.newPage()
     await page.goto('https://www.baidu.com')
     // other actions...
     //await browser.close()
