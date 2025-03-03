@@ -1,0 +1,43 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build application
+        run: yarn build
+
+      - name: Package application
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            yarn build:win
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            yarn build:mac
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-package
+          path: dist/
