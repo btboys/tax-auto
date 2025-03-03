@@ -5,5 +5,3 @@ out
 .eslintcache
 *.log*
 .idea
-yarn.lock
-package-lock.json
