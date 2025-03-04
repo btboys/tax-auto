@@ -1,26 +1,50 @@
-<script setup lang="ts">
-import Versions from './components/Versions.vue'
-
-const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
-</script>
-
 <template>
-  <img alt="logo" class="logo" src="./assets/electron.svg" />
-  <div class="creator">Powered by electron-vite</div>
-  <div class="text">
-    Build an Electron app with
-    <span class="vue">Vue</span>
-    and
-    <span class="ts">TypeScript</span>
-  </div>
-  <p class="tip">Please try pressing <code>F12</code> to open the devTool</p>
-  <div class="actions">
-    <div class="action">
-      <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">Documentation</a>
-    </div>
-    <div class="action">
-      <a target="_blank" rel="noreferrer" @click="ipcHandle">Send IPC</a>
-    </div>
-  </div>
-  <Versions />
+  <t-layout class="h-full">
+    <t-aside>
+      <t-menu theme="light" :default-value="currentPage" @change="setPage">
+        <template #logo>
+          <div class="logo"><b class="vue">税务自动化平台</b></div>
+        </template>
+        <t-menu-item value="Accounts">
+          <template #icon>
+            <t-icon name="dashboard" />
+          </template>
+          税务账号
+        </t-menu-item>
+        <t-menu-item value="Setting">
+          <template #icon>
+            <t-icon name="dashboard" />
+          </template>
+          系统设置
+        </t-menu-item>
+      </t-menu>
+    </t-aside>
+    <t-layout>
+      <t-content class="m-4 p-4 bg-white">
+        <component :is="currentPage" />
+      </t-content>
+      <t-footer class="text-center text-red-600"
+        >Copyright @ 2019-{{ new Date().getFullYear() }} Tencent. All Rights Reserved
+      </t-footer>
+    </t-layout>
+  </t-layout>
 </template>
+<script setup lang="ts">
+import { defineOptions } from 'vue'
+import { storeToRefs } from 'pinia'
+import Accounts from '@renderer/components/Accounts.vue'
+import Setting from '@renderer/components/Setting.vue'
+import { useStore } from '@renderer/store'
+
+const store = useStore()
+const { setPage } = store
+const { currentPage } = storeToRefs(store)
+
+defineOptions({
+  name: 'App',
+  components: {
+    Accounts,
+    Setting
+  }
+})
+</script>

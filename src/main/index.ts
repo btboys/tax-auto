@@ -1,15 +1,18 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import puppeteer from 'puppeteer'
+import { chromium } from 'playwright'
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1280,
+    height: 700,
     show: false,
+    maximizable: false,
+    resizable: false,
+    fullscreenable: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -51,15 +54,74 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', async () => {
-    const browser = await puppeteer.launch({
-      headless: false,
-      args: ['--no-sandbox']
-    })
-    const page = await browser.newPage()
-    await page.goto('https://www.baidu.com')
-    // other actions...
-    //await browser.close()
+  ipcMain.on('test', async (event, args) => {
+    try {
+      const browser = await chromium.launch({
+        headless: false,
+        chromiumSandbox: false,
+        executablePath: args
+      })
+      const page = await browser.newPage()
+      await page.goto('https://www.baidu.com')
+      await page.locator('//*[@id="kw"]').fill('纷析云财务')
+      await page.locator('//*[@id="su"]').click()
+      await page.waitForTimeout(10000)
+      await browser.close()
+      event.sender.send('testSuccess')
+    } catch (e) {
+      if (e instanceof Error) {
+        event.sender.send('testError', e.message)
+      } else {
+        event.sender.send('testError', '未知错误')
+      }
+    }
+  })
+
+  // IPC test
+  ipcMain.on('dir', async (event) => {
+    dialog
+      .showOpenDialog({
+        properties: ['openDirectory'] // 只允许选择文件夹
+      })
+      .then((result) => {
+        if (!result.canceled) {
+          event.sender.send('dir', result.filePaths)
+          console.log(result.filePaths) // 打印选中的文件夹路径
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  })
+
+  // IPC test
+  ipcMain.on('openLogin', async (event, args) => {
+    try {
+      const browser = await chromium.launch({
+        headless: false,
+        chromiumSandbox: false,
+        executablePath: args.executablePath
+      })
+      const page = await browser.newPage()
+      await page.goto(args.loginUrl)
+      await page.evaluate((): void => {
+        document.querySelector('span.loginBtn')?.click()
+      })
+      await page.getByPlaceholder('统一社会信用代码/纳税人识别号').isVisible()
+      await page.locator('.login_box .tabsCls').getByText(args.loginType).click()
+      await page.getByPlaceholder('统一社会信用代码/纳税人识别号').fill(args.creditCode)
+      await page.getByPlaceholder('居民身份证号码/手机号码/用户名').fill(args.account)
+      await page.locator('input[type="password"]').fill(args.password)
+      await page.getByRole('button', { name: '登录' }).click()
+      await page.waitForTimeout(10000)
+      await browser.close()
+    } catch (e) {
+      if (e instanceof Error) {
+        event.sender.send('testError', e.message)
+      } else {
+        event.sender.send('testError', '未知错误')
+      }
+    }
   })
 
   createWindow()
