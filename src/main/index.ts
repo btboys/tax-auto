@@ -105,7 +105,7 @@ app.whenReady().then(() => {
       const page = await browser.newPage()
       await page.goto(args.loginUrl)
       await page.evaluate((): void => {
-        document.querySelector('span.loginBtn')?.click()
+        document.querySelector<HTMLElement>('span.loginBtn')?.click()
       })
       await page.getByPlaceholder('统一社会信用代码/纳税人识别号').isVisible()
       await page.locator('.login_box .tabsCls').getByText(args.loginType).click()

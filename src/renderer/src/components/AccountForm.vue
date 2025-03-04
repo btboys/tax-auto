@@ -28,8 +28,8 @@ const rules = {
 
 const onSubmit = (): void => {
   const entity = { ...form }
-  localforage.getItem('account').then((value) => {
-    if (entity.id) {
+  localforage.getItem<Account[]>('account').then((value) => {
+    if (entity.id && value) {
       const index = value.findIndex((item: Account) => item.id === entity.id)
       value[index] = entity
     } else {
