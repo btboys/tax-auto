@@ -16,7 +16,6 @@ win:
   icon: resources/icon.ico
   sign: false
   artifactName: ${productName}-${version}-setup.${ext}
-  productVersion: ${version}
   publisherName: 纷析云（株洲）科技有限公司
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
