@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { chromium } from 'playwright'
+import { Browser, chromium } from 'playwright'
 
 function createWindow(): void {
   // Create the browser window.
@@ -81,12 +81,20 @@ app.whenReady().then(() => {
   ipcMain.on('dir', async (event) => {
     dialog
       .showOpenDialog({
-        properties: ['openDirectory'] // 只允许选择文件夹
+        properties: ['openFile'],
+        title: '选择 Chrome启动文件'
       })
       .then((result) => {
-        if (!result.canceled) {
-          event.sender.send('dir', result.filePaths)
-          console.log(result.filePaths) // 打印选中的文件夹路径
+        if (!result.canceled && result.filePaths.length) {
+          if (process.platform === 'darwin') {
+            if (result.filePaths[0].includes('Google Chrome.app')) {
+              event.sender.send('dir', result.filePaths[0] + '/Contents/MacOS/Google Chrome')
+            } else {
+              event.sender.send('dir', '请选择Google Chrome.app')
+            }
+          } else {
+            event.sender.send('dir', result.filePaths[0])
+          }
         }
       })
       .catch((err) => {
@@ -94,15 +102,21 @@ app.whenReady().then(() => {
       })
   })
 
+  ipcMain.on('platform', (event) => {
+    event.returnValue = process.platform
+  })
+
   // IPC test
   ipcMain.on('openLogin', async (event, args) => {
+    let browser: Browser | null = null
     try {
-      const browser = await chromium.launch({
+      browser = await chromium.launch({
         headless: false,
         chromiumSandbox: false,
         executablePath: args.executablePath
       })
       const page = await browser.newPage()
+      page.setDefaultTimeout(60000)
       await page.goto(args.loginUrl)
       await page.evaluate((): void => {
         document.querySelector<HTMLElement>('span.loginBtn')?.click()
@@ -120,6 +134,10 @@ app.whenReady().then(() => {
         event.sender.send('testError', e.message)
       } else {
         event.sender.send('testError', '未知错误')
+      }
+
+      if (browser !== null) {
+        await browser.close()
       }
     }
   })
