@@ -1,11 +1,11 @@
 {
   "name": "tax-auto",
   "version": "1.0.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "description": "税务多开操作小助手",
   "main": "./out/main/index.js",
   "author": "夏悸",
   "license": "Apache-2.0",
-  "homepage": "https://electron-vite.org",
+  "homepage": "https://fenxi365.com",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -17,8 +17,8 @@
     "build": "yarn run typecheck && yarn run rebuild-playwright && electron-vite build",
     "rebuild-playwright": "electron-rebuild -f -w playwright",
     "build:unpack": "yarn run build && electron-builder --dir",
-    "build:win": "yarn run build && electron-builder --win",
-    "build:mac": "yarn run build && electron-builder --mac",
+    "build:win": "yarn run build && electron-builder --win --x64",
+    "build:mac": "yarn run build && electron-builder --mac --x64",
     "build:linux": "yarn run build && electron-builder --linux"
   },
   "dependencies": {
